@@ -604,7 +604,7 @@ function bjAnswerHit(i){
     bjPlayer.push(bjDeck.pop());
     bjRenderTable(true);
     if(bjHandVal(bjPlayer)>21){bjResolve('bust');return;}
-    if(bjHandVal(bjPlayer)===21){bjStand();return;}
+    if(bjHandVal(bjPlayer)===21){bjDone=true;bjDealerPlay();return;}
     // Re-append explanation above the action buttons
     let acts2=document.getElementById('bj-actions');
     acts2.insertBefore(box,acts2.firstChild);
@@ -803,7 +803,7 @@ function bjResolve(result){
   let amtCls=amt>0?'win':amt<0?'lose':'';
   let lastBet=bjBet;// remember bet before it was potentially doubled
   document.getElementById('bj-result').innerHTML=`
-    ${explainBox(q.e,q.s)}
+    ${q?explainBox(q.e,q.s):''}
     <div class="result-box ${cls}"><div>${msg}</div><div class="result-amt ${amtCls}">${amtStr}</div></div>
     <div style="text-align:center;margin:12px 0">
       <div style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Bankroll: $${S.bankroll.toLocaleString()}</div>
