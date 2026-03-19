@@ -595,34 +595,24 @@ function bjAnswerHit(i){
   if(correct){S.stats.qRight++;S.stats.ts.transformers.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
   save();
-  let acts=document.getElementById('bj-actions');
-  let box=document.createElement('div');
-  box.innerHTML=`<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
-  acts.appendChild(box);
+  let explainHtml=`<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
   if(correct){
-    // Hit goes through — show new card + action buttons below explanation
+    // Hit goes through — deal new card, then show explainer above action buttons
     bjPlayer.push(bjDeck.pop());
     bjRenderTable(true);
     if(bjHandVal(bjPlayer)>21){bjResolve('bust');return;}
     if(bjHandVal(bjPlayer)===21){bjDone=true;bjDealerPlay();return;}
-    // Re-append explanation above the action buttons
-    let acts2=document.getElementById('bj-actions');
-    acts2.insertBefore(box,acts2.firstChild);
-    bjShowActions();
-    acts2.insertBefore(box,acts2.firstChild);
+    bjShowActions(explainHtml);
   } else {
-    // Wrong — forced to stand, but let player read the explanation first
-    let contBtn=document.createElement('button');
-    contBtn.className='deal-btn';
-    contBtn.style.cssText='margin-top:12px;max-width:160px';
-    contBtn.textContent='Continue';
-    contBtn.onclick=function(){
-      bjRenderTable(true);
-      document.getElementById('bj-actions').innerHTML=`<div style="text-align:center;color:var(--lose);font-size:14px;font-weight:700;margin:8px 0">Wrong answer — forced to STAND</div>`;
-      setTimeout(()=>{bjDone=true;bjDealerPlay();},1200);
-    };
-    acts.appendChild(contBtn);
+    // Wrong — replace quiz with explainer + Continue button
+    let acts=document.getElementById('bj-actions');
+    acts.innerHTML=explainHtml+`<button class="deal-btn" style="margin-top:12px;max-width:160px" onclick="bjHitWrongContinue()">Continue</button>`;
   }
+}
+function bjHitWrongContinue(){
+  bjRenderTable(true);
+  document.getElementById('bj-actions').innerHTML=`<div style="text-align:center;color:var(--lose);font-size:14px;font-weight:700;margin:8px 0">Wrong answer — forced to STAND</div>`;
+  setTimeout(()=>{bjDone=true;bjDealerPlay();},1200);
 }
 
 function bjCheckNatural(){
@@ -633,11 +623,11 @@ function bjCheckNatural(){
   bjShowActions();
 }
 
-function bjShowActions(){
+function bjShowActions(prefixHtml){
   let acts=document.getElementById('bj-actions');
   if(!acts)return;
   let canDouble=bjPlayer.length===2&&S.bankroll>=bjBet;
-  acts.innerHTML=`<button class="deal-btn" style="max-width:100px;display:inline-block;margin:4px" onclick="bjAskHit()">HIT</button>
+  acts.innerHTML=(prefixHtml||'')+`<button class="deal-btn" style="max-width:100px;display:inline-block;margin:4px" onclick="bjAskHit()">HIT</button>
     <button class="deal-btn" style="max-width:100px;display:inline-block;margin:4px" onclick="bjAskStand()">STAND</button>
     ${canDouble?'<button class="deal-btn" style="max-width:140px;display:inline-block;margin:4px;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff" onclick="bjAskDouble()">DOUBLE</button>':''}`;
 }
@@ -687,30 +677,24 @@ function bjAnswerStand(i){
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
   save();
   let acts=document.getElementById('bj-actions');
-  let box=document.createElement('div');
-  box.innerHTML=`<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
-  acts.appendChild(box);
-  let contBtn=document.createElement('button');
-  contBtn.className='deal-btn';
-  contBtn.style.cssText='margin-top:12px;max-width:160px';
-  contBtn.textContent='Continue';
-  contBtn.onclick=function(){
-    bjDone=true;
-    if(!correct&&bjPlayer.length>1){
-      let bestIdx=0,bestVal=0;
-      bjPlayer.forEach((c,idx)=>{
-        let v=bjCardVal(c);
-        if(c.r!=='A'&&v>bestVal){bestVal=v;bestIdx=idx;}
-      });
-      let removed=bjPlayer.splice(bestIdx,1)[0];
-      bjRenderTable(true);
-      document.getElementById('bj-actions').innerHTML=`<div style="text-align:center;color:var(--lose);font-size:14px;font-weight:700;margin:8px 0">Wrong — lost your ${removed.r}${removed.s}!</div>`;
-      setTimeout(()=>bjDealerPlay(),1200);
-    } else {
-      bjDealerPlay();
-    }
-  };
-  acts.appendChild(contBtn);
+  let explainHtml=`<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
+  acts.innerHTML=explainHtml+`<button class="deal-btn" style="margin-top:12px;max-width:160px" onclick="bjStandContinue(${correct})">Continue</button>`;
+}
+function bjStandContinue(correct){
+  bjDone=true;
+  if(!correct&&bjPlayer.length>1){
+    let bestIdx=0,bestVal=0;
+    bjPlayer.forEach((c,idx)=>{
+      let v=bjCardVal(c);
+      if(c.r!=='A'&&v>bestVal){bestVal=v;bestIdx=idx;}
+    });
+    let removed=bjPlayer.splice(bestIdx,1)[0];
+    bjRenderTable(true);
+    document.getElementById('bj-actions').innerHTML=`<div style="text-align:center;color:var(--lose);font-size:14px;font-weight:700;margin:8px 0">Wrong — lost your ${removed.r}${removed.s}!</div>`;
+    setTimeout(()=>bjDealerPlay(),1200);
+  } else {
+    bjDealerPlay();
+  }
 }
 
 // Quiz on DOUBLE: answer correctly to double, wrong = forced stand
@@ -736,28 +720,22 @@ function bjAnswerDouble(i){
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
   save();
   let acts=document.getElementById('bj-actions');
-  let box=document.createElement('div');
-  box.innerHTML=`<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
-  acts.appendChild(box);
-  let contBtn=document.createElement('button');
-  contBtn.className='deal-btn';
-  contBtn.style.cssText='margin-top:12px;max-width:160px';
-  contBtn.textContent='Continue';
-  contBtn.onclick=function(){
-    if(correct){
-      bjBet*=2;
-      bjPlayer.push(bjDeck.pop());
-      bjDone=true;
-      bjRenderTable(true);
-      if(bjHandVal(bjPlayer)>21){bjResolve('bust');return;}
-      bjDealerPlay();
-    } else {
-      bjRenderTable(true);
-      document.getElementById('bj-actions').innerHTML=`<div style="text-align:center;color:var(--lose);font-size:14px;font-weight:700;margin:8px 0">Wrong answer — forced to STAND</div>`;
-      setTimeout(()=>{bjDone=true;bjDealerPlay();},1200);
-    }
-  };
-  acts.appendChild(contBtn);
+  let explainHtml=`<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
+  acts.innerHTML=explainHtml+`<button class="deal-btn" style="margin-top:12px;max-width:160px" onclick="bjDoubleContinue(${correct})">Continue</button>`;
+}
+function bjDoubleContinue(correct){
+  if(correct){
+    bjBet*=2;
+    bjPlayer.push(bjDeck.pop());
+    bjDone=true;
+    bjRenderTable(true);
+    if(bjHandVal(bjPlayer)>21){bjResolve('bust');return;}
+    bjDealerPlay();
+  } else {
+    bjRenderTable(true);
+    document.getElementById('bj-actions').innerHTML=`<div style="text-align:center;color:var(--lose);font-size:14px;font-weight:700;margin:8px 0">Wrong answer — forced to STAND</div>`;
+    setTimeout(()=>{bjDone=true;bjDealerPlay();},1200);
+  }
 }
 
 // Dealer plays (hits until 17+)
