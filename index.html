@@ -486,7 +486,7 @@ function dealRound(){
   let q=pool[Math.floor(Math.random()*pool.length)];
   let area=document.getElementById('game');
   let opts=q.o.map((o,i)=>`<button class="q-opt" onclick="answer(${i})">${o}</button>`).join('');
-  area.innerHTML=`<div class="game-header"><span class="game-title">${T[curTable].n}</span><span class="game-title">$${curBet}</span></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">${T[curTable].n}</span><span class="game-title" style="text-align:right;line-height:1.4">$${curBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
     <div class="q-box"><div class="q-text">${q.q}</div>${opts}</div>`;
   window._q=q;window._lvl=lvl;
 }
@@ -636,7 +636,7 @@ function bjShowActions(prefixHtml){
 function bjRenderTable(hideDealer){
   let pv=bjHandVal(bjPlayer),dv=hideDealer?'?':bjHandVal(bjDealer);
   let area=document.getElementById('game');
-  area.innerHTML=`<div class="game-header"><span class="game-title">Transformer Blackjack</span><span class="game-title">$${bjBet}</span></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Transformer Blackjack</span><span class="game-title" style="text-align:right;line-height:1.4">$${bjBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
     <div style="text-align:center;margin:8px 0">
       <div style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px">Dealer ${hideDealer?'':'— '+dv}</div>
       <div id="bj-dealer-hand" class="bj-hand">${bjHandHtml(bjDealer,hideDealer)}</div>
@@ -822,7 +822,7 @@ function crShowBet(){
 function crRenderBetting(){
   let area=document.getElementById('game');
   let total=crPass+crDontPass+crField;
-  area.innerHTML=`<div class="game-header"><span class="game-title">Data Center Craps</span><button class="back-btn" onclick="showScreen('lobby')">← Lobby</button></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Data Center Craps</span><span class="game-title" style="text-align:right;line-height:1.4;font-size:11px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></div>
     <div class="craps-point off">OFF</div>
     <div class="dice-area">${dieHtml(crLastD1,false)}${dieHtml(crLastD2,false)}</div>
     <div style="text-align:center;font-size:12px;color:var(--dim);margin:4px 0">COME-OUT ROLL — Place your bets</div>
@@ -882,7 +882,7 @@ function crRenderTable(d1,d2,rolling,msg){
   if(crField)bets.push(`<span class="craps-badge active">Field: $${crField}</span>`);
   if(crOddsBet)bets.push(`<span class="craps-badge active">Odds: $${crOddsBet}</span>`);
   let betsHtml=bets.length?`<div class="craps-bets" style="flex-wrap:wrap">${bets.join('')}</div>`:'';
-  area.innerHTML=`<div class="game-header"><span class="game-title">Data Center Craps</span><button class="back-btn" onclick="showScreen('lobby')">← Lobby</button></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Data Center Craps</span><span class="game-title" style="text-align:right;line-height:1.4;font-size:11px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></div>
     ${pointHtml}${betsHtml}
     <div class="dice-area">${dieHtml(d1,rolling)}${dieHtml(d2,rolling)}</div>
     <div class="craps-info" id="cr-info">${msg||( rolling?'Rolling...':d1+' + '+d2+' = '+(d1+d2))}</div>
@@ -1119,7 +1119,7 @@ function slAskToSpin(){
   slQuestion=pool[Math.floor(Math.random()*pool.length)];
   let q=slQuestion;
   let area=document.getElementById('game');
-  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots</span><span class="game-title">Bet: $${slBet}</span></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots</span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
     <div class="q-box">
       <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to SPIN. Wrong = you lose your bet.</div>
       <div class="q-text">${q.q}</div>
@@ -1145,7 +1145,7 @@ function slAnswerSpin(i){
       S.stats.lost+=slBet;S.bankroll-=slBet;
       if(S.bankroll<25)S.bankroll=500;save();
       let area=document.getElementById('game');
-      area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots</span><span class="game-title">Bet: $${slBet}</span></div>
+      area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots</span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
         <div class="slot-frame"><div class="sl-grid">${'<div class="sl-cell">🚫</div>'.repeat(9)}</div></div>
         ${explainBox(q.e,q.s)}
         <div class="result-box lose"><div>WRONG ANSWER</div><div class="result-amt lose">-$${slBet.toLocaleString()}</div>
@@ -1168,7 +1168,7 @@ function slSpin(){
   slGrid=[];for(let i=0;i<9;i++)slGrid.push(slRand());
 
   let area=document.getElementById('game');
-  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots</span><span class="game-title">Bet: $${slBet}</span></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots</span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
     ${slRenderMachine(true)}
     <div id="sl-info" style="text-align:center;min-height:24px;margin:8px 0;font-weight:700"></div>
     <div id="sl-actions"></div>
@@ -1206,7 +1206,7 @@ function slCheckWins(){
 
   // Re-render with highlighted wins
   let area=document.getElementById('game');
-  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots</span><span class="game-title">Bet: $${slBet}</span></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots</span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
     ${slRenderMachine(false)}
     <div id="sl-info" style="text-align:center;min-height:24px;margin:8px 0;font-weight:700"></div>
     <div id="sl-actions"></div>
@@ -1328,7 +1328,7 @@ function sbRenderBoard(){
     </div>`;
   }
 
-  area.innerHTML=`<div class="game-header"><span class="game-title">Power Systems Sportsbook</span><button class="back-btn" onclick="showScreen('lobby')">← Lobby</button></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Power Systems Sportsbook</span><span class="game-title" style="text-align:right;line-height:1.4;font-size:11px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></div>
     <div style="font-size:12px;color:var(--dim);text-align:center;margin-bottom:8px">Pick events, set your wager, lock it in</div>
     <div class="sb-board">${eventsHtml}</div>
     ${slipHtml}
@@ -1363,7 +1363,7 @@ function sbAnswerNext(idx){
   let q=ev.q;
   let area=document.getElementById('game');
   let opts=q.o.map((o,i)=>`<button class="q-opt" onclick="sbAnswer(${idx},${i})">${o}</button>`).join('');
-  area.innerHTML=`<div class="game-header"><span class="game-title">Power Systems Sportsbook</span><span class="game-title">${idx+1}/${picks.length}</span></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Power Systems Sportsbook</span><span class="game-title" style="text-align:right;line-height:1.4">${idx+1}/${picks.length}<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
     <div class="sb-event locked" style="margin-bottom:12px"><div><div class="sb-topic">${ev.topic}</div><div class="sb-diff">${SB_DIFF_LABEL[ev.diff]} — ${ev.odds.display}</div></div><span class="sb-odds">${ev.odds.display}</span></div>
     <div class="q-box"><div class="q-text">${q.q}</div>${opts}</div>`;
 }
@@ -1423,7 +1423,7 @@ function sbShowResults(){
   // Show explanations for all questions
   let explains=picks.map(ev=>explainBox(`<b>${ev.result?'✓':'✗'} ${ev.topic}:</b> ${ev.q.e}`,ev.q.s)).join('');
 
-  area.innerHTML=`<div class="game-header"><span class="game-title">Power Systems Sportsbook</span><span class="game-title">Results</span></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Power Systems Sportsbook</span><span class="game-title" style="text-align:right;line-height:1.4">Results<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
     <div style="margin:8px 0">${rows}</div>
     ${sbParlay?`<div style="text-align:center;font-size:12px;color:var(--gold);margin:4px 0">PARLAY — ${picks.every(e=>e.result)?'ALL HIT!':'BUSTED'}</div>`:''}
     ${explains}
