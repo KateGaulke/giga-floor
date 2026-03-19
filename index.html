@@ -226,18 +226,54 @@ const DS={bankroll:10000,levels:{transformers:1,switchgear:1,datacenters:1,gps:1
 stats:{won:0,lost:0,qRight:0,qWrong:0,ts:{
 transformers:{p:0,w:0,l:0,r:[0,0,0],wr:[0,0,0],earn:0},switchgear:{p:0,w:0,l:0,r:[0,0,0],wr:[0,0,0],earn:0},
 datacenters:{p:0,w:0,l:0,r:[0,0,0],wr:[0,0,0],earn:0},gps:{p:0,w:0,l:0,r:[0,0,0],wr:[0,0,0],earn:0},whale:{p:0,w:0,l:0,earn:0}}}};
-// Level thresholds: earn this much at a table to unlock next level
-const LVL_THRESH={2:5000,3:15000};
-let S=load();function load(){try{let s=localStorage.getItem(SK);return s?JSON.parse(s):JSON.parse(JSON.stringify(DS))}catch(e){return JSON.parse(JSON.stringify(DS))}}
+// Level up: get STREAK_TO_LEVEL correct in a row to advance
+const STREAK_TO_LEVEL=5;
+let S=load();function load(){let s;try{s=localStorage.getItem(SK);s=s?JSON.parse(s):JSON.parse(JSON.stringify(DS))}catch(e){s=JSON.parse(JSON.stringify(DS))}if(!s.streaks)s.streaks={transformers:0,switchgear:0,datacenters:0,gps:0};return s}
 function save(){localStorage.setItem(SK,JSON.stringify(S));updBR()}
 function updBR(){document.querySelectorAll('[id^=br]').forEach(e=>e.innerHTML='<span>Bankroll</span>$'+S.bankroll.toLocaleString())}
 function checkLevelUp(tableKey){
   if(tableKey==='whale')return;
-  let earn=S.stats.ts[tableKey].earn||0;
-  if(earn>=LVL_THRESH[3])S.levels[tableKey]=3;
-  else if(earn>=LVL_THRESH[2])S.levels[tableKey]=2;
-  else S.levels[tableKey]=1;
   save();
+}
+function recordStreak(tableKey,correct){
+  if(tableKey==='whale')return false;
+  if(!S.streaks)S.streaks={transformers:0,switchgear:0,datacenters:0,gps:0};
+  if(correct){
+    S.streaks[tableKey]=(S.streaks[tableKey]||0)+1;
+    if(S.streaks[tableKey]>=STREAK_TO_LEVEL&&S.levels[tableKey]<3){
+      S.levels[tableKey]++;
+      S.streaks[tableKey]=0;
+      save();
+      return true;
+    }
+  } else {
+    S.streaks[tableKey]=0;
+  }
+  save();
+  return false;
+}
+function streakHtml(tableKey){
+  if(!S.streaks)S.streaks={transformers:0,switchgear:0,datacenters:0,gps:0};
+  let streak=S.streaks[tableKey]||0;
+  let lvl=S.levels[tableKey]||1;
+  if(lvl>=3)return `<div style="text-align:center;margin:6px 0;font-size:11px;color:var(--gold)">🏆 MAX LEVEL</div>`;
+  let dots='';
+  for(let i=0;i<STREAK_TO_LEVEL;i++){
+    dots+=`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 2px;${i<streak?'background:var(--gold)':'background:rgba(255,255,255,0.15)'}"></span>`;
+  }
+  return `<div style="text-align:center;margin:6px 0"><div style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Level ${lvl} → ${lvl+1}: ${streak}/${STREAK_TO_LEVEL} streak</div>${dots}</div>`;
+}
+
+// Smart question picker: avoids repeats until pool exhausted
+let _asked={};
+function pickQ(pool,key){
+  if(!key)key='default';
+  if(!_asked[key])_asked[key]=[];
+  let avail=pool.filter((_,i)=>!_asked[key].includes(i));
+  if(avail.length===0){_asked[key]=[];avail=pool;}
+  let pick=avail[Math.floor(Math.random()*avail.length)];
+  _asked[key].push(pool.indexOf(pick));
+  return pick;
 }
 
 // === SOURCES ===
@@ -483,7 +519,7 @@ function clrBet(){curBet=0;document.getElementById('bd').textContent='$0';docume
 function dealRound(){
   let lvl=curTable==='whale'?null:S.levels[curTable];
   let pool=curTable==='whale'?Q.whale:Q[curTable][lvl];
-  let q=pool[Math.floor(Math.random()*pool.length)];
+  let q=curTable==='whale'?pool[Math.floor(Math.random()*pool.length)]:pickQ(pool,curTable+lvl);
   let area=document.getElementById('game');
   let opts=q.o.map((o,i)=>`<button class="q-opt" onclick="answer(${i})">${o}</button>`).join('');
   area.innerHTML=`<div class="game-header"><span class="game-title">${T[curTable].n}</span><span class="game-title" style="text-align:right;line-height:1.4">$${curBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
@@ -500,7 +536,7 @@ function answer(i){
   let ts=S.stats.ts[curTable];ts.p++;
   if(correct){ts.w++;S.stats.won+=curBet;S.bankroll+=curBet;ts.earn=(ts.earn||0)+curBet;if(lvl)ts.r[lvl-1]++;S.stats.qRight++;}
   else{ts.l++;S.stats.lost+=curBet;S.bankroll-=curBet;if(lvl)ts.wr[lvl-1]++;S.stats.qWrong++;}
-  if(S.bankroll<25)S.bankroll=500;checkLevelUp(curTable);save();
+  if(S.bankroll<25)S.bankroll=500;recordStreak(curTable,correct);checkLevelUp(curTable);save();
   let area=document.getElementById('game');
   let rClass=correct?'win':'lose';
   let rAmt=correct?'+$'+curBet.toLocaleString():'-$'+curBet.toLocaleString();
@@ -577,7 +613,7 @@ function bjDealCards(){
 function bjAskHit(){
   let lvl=S.levels.transformers;
   let pool=Q.transformers[lvl];
-  bjQuestion=pool[Math.floor(Math.random()*pool.length)];
+  bjQuestion=pickQ(pool,'transformers'+lvl);
   let q=bjQuestion;
   document.getElementById('bj-actions').innerHTML=`<div class="q-box">
     <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to HIT. Wrong = forced to STAND.</div>
@@ -594,8 +630,10 @@ function bjAnswerHit(i){
   });
   if(correct){S.stats.qRight++;S.stats.ts.transformers.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
-  save();
+  let lvlUp=recordStreak('transformers',correct);
   let explainHtml=`<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
+  if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now Level ${S.levels.transformers}</div>`;
+  explainHtml+=streakHtml('transformers');
   if(correct){
     // Hit goes through — deal new card, then show explainer above action buttons
     bjPlayer.push(bjDeck.pop());
@@ -659,7 +697,7 @@ function bjAskStand(){
   if(bjDone)return;
   let lvl=S.levels.transformers;
   let pool=Q.transformers[lvl];
-  bjQuestion=pool[Math.floor(Math.random()*pool.length)];
+  bjQuestion=pickQ(pool,'transformers'+lvl);
   let q=bjQuestion;
   document.getElementById('bj-actions').innerHTML=`<div class="q-box">
     <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to STAND clean. Wrong = lose your highest card.</div>
@@ -675,9 +713,11 @@ function bjAnswerStand(i){
   });
   if(correct){S.stats.qRight++;S.stats.ts.transformers.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
-  save();
+  let lvlUp=recordStreak('transformers',correct);
   let acts=document.getElementById('bj-actions');
   let explainHtml=`<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
+  if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now Level ${S.levels.transformers}</div>`;
+  explainHtml+=streakHtml('transformers');
   acts.innerHTML=explainHtml+`<button class="deal-btn" style="margin-top:12px;max-width:160px" onclick="bjStandContinue(${correct})">Continue</button>`;
 }
 function bjStandContinue(correct){
@@ -701,7 +741,7 @@ function bjStandContinue(correct){
 function bjAskDouble(){
   let lvl=S.levels.transformers;
   let pool=Q.transformers[lvl];
-  bjQuestion=pool[Math.floor(Math.random()*pool.length)];
+  bjQuestion=pickQ(pool,'transformers'+lvl);
   let q=bjQuestion;
   document.getElementById('bj-actions').innerHTML=`<div class="q-box">
     <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to DOUBLE DOWN. Wrong = forced to STAND.</div>
@@ -718,9 +758,11 @@ function bjAnswerDouble(i){
   });
   if(correct){S.stats.qRight++;S.stats.ts.transformers.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
-  save();
+  let lvlUp=recordStreak('transformers',correct);
   let acts=document.getElementById('bj-actions');
   let explainHtml=`<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
+  if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now Level ${S.levels.transformers}</div>`;
+  explainHtml+=streakHtml('transformers');
   acts.innerHTML=explainHtml+`<button class="deal-btn" style="margin-top:12px;max-width:160px" onclick="bjDoubleContinue(${correct})">Continue</button>`;
 }
 function bjDoubleContinue(correct){
@@ -968,7 +1010,7 @@ function crResolveComeout(d1,d2,netAmt,title,desc){
   checkLevelUp('datacenters');save();
   // Show a learning fact even on come-out resolution
   let lvl=S.levels.datacenters;let pool=Q.datacenters[lvl];
-  crQuestion=pool[Math.floor(Math.random()*pool.length)];
+  crQuestion=pickQ(pool,'datacenters'+lvl);
   let cls=netAmt>=0?'win':'lose';
   let amtStr=netAmt>0?'+$'+netAmt.toLocaleString():netAmt<0?'-$'+Math.abs(netAmt).toLocaleString():'$0';
   crRenderTable(d1,d2,false);
@@ -986,7 +1028,7 @@ function crPointPhaseSetup(){
   let info=document.getElementById('cr-info');
   if(info)info.innerHTML=`Point is <b style="color:var(--gold)">${crPoint}</b>. Answer correctly to place an Odds bet behind your Pass Line.`;
   let lvl=S.levels.datacenters;let pool=Q.datacenters[lvl];
-  crQuestion=pool[Math.floor(Math.random()*pool.length)];
+  crQuestion=pickQ(pool,'datacenters'+lvl);
   let q=crQuestion;
   let opts=q.o.map((o,i)=>`<button class="q-opt" onclick="crAnswerOdds(${i})">${o}</button>`).join('');
   let oddsLabel=crPoint===4||crPoint===10?'2:1':crPoint===5||crPoint===9?'3:2':'6:5';
@@ -1002,7 +1044,7 @@ function crAnswerOdds(i){
   });
   if(correct){S.stats.qRight++;S.stats.ts.datacenters.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.datacenters.wr[lvl-1]++;}
-  save();
+  recordStreak('datacenters',correct);
   if(correct&&crPass>0)crOddsBet=crPass;
   flashExplain(document.getElementById('cr-actions'),q,correct,()=>{
     crRenderTable(crLastD1,crLastD2,false);
@@ -1116,7 +1158,7 @@ function slAskToSpin(){
   if(slBet<=0)return;
   let lvl=S.levels.switchgear;
   let pool=Q.switchgear[lvl];
-  slQuestion=pool[Math.floor(Math.random()*pool.length)];
+  slQuestion=pickQ(pool,'switchgear'+lvl);
   let q=slQuestion;
   let area=document.getElementById('game');
   area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots</span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
@@ -1134,7 +1176,7 @@ function slAnswerSpin(i){
   });
   if(correct){S.stats.qRight++;S.stats.ts.switchgear.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.switchgear.wr[lvl-1]++;}
-  save();
+  recordStreak('switchgear',correct);
   let container=document.querySelector('.q-box')||document.getElementById('game');
   flashExplain(container,q,correct,()=>{
     if(correct){
@@ -1227,7 +1269,7 @@ function slCheckWins(){
 function slBonusQuestion(baseMult){
   let lvl=S.levels.switchgear;
   let pool=Q.switchgear[lvl];
-  slQuestion=pool[Math.floor(Math.random()*pool.length)];
+  slQuestion=pickQ(pool,'switchgear'+lvl);
   let q=slQuestion;
   let opts=q.o.map((o,i)=>`<button class="q-opt" onclick="slAnswerBonus(${i},${baseMult})">${o}</button>`).join('');
   document.getElementById('sl-actions').innerHTML=`<div class="q-box">
@@ -1244,7 +1286,7 @@ function slAnswerBonus(i,baseMult){
   });
   if(correct){S.stats.qRight++;S.stats.ts.switchgear.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.switchgear.wr[lvl-1]++;}
-  save();
+  recordStreak('switchgear',correct);
 
   let mult=correct?baseMult*3:baseMult;
   let win=slBet*mult;
@@ -1262,7 +1304,7 @@ function slAnswerBonus(i,baseMult){
 function slResolveLoss(){
   let lvl=S.levels.switchgear;
   let pool=Q.switchgear[lvl];
-  slQuestion=pool[Math.floor(Math.random()*pool.length)];
+  slQuestion=pickQ(pool,'switchgear'+lvl);
   let q=slQuestion;
   let ts=S.stats.ts.switchgear;ts.p++;ts.l++;
   S.stats.lost+=slBet;S.bankroll-=slBet;
@@ -1381,7 +1423,7 @@ function sbAnswer(idx,i){
   let lvl=S.levels.gps;
   if(correct){S.stats.qRight++;S.stats.ts.gps.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.gps.wr[lvl-1]++;}
-  save();
+  recordStreak('gps',correct);
   flashExplain(document.querySelector('.q-box')||document.getElementById('game'),q,correct,()=>sbAnswerNext(idx+1));
 }
 
