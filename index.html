@@ -276,6 +276,11 @@ function pickQ(pool,key){
   return pick;
 }
 
+// Merged question pool: all 4 categories combined per level
+function allQ(lvl){
+  return [].concat(Q.transformers[lvl]||[],Q.switchgear[lvl]||[],Q.datacenters[lvl]||[],Q.gps[lvl]||[]);
+}
+
 // === SOURCES ===
 const U={
 S:'https://www.gigaenergy.com',
@@ -454,10 +459,8 @@ whale:[
 
 // === TABLES ===
 const T={
-transformers:{n:'Transformer Blackjack',i:'🃏',d:'Answer questions to win hands',c:'Transformers'},
-switchgear:{n:'Switchgear Slots',i:'🎰',d:'Spin and learn switchboard specs',c:'Switchboards'},
-datacenters:{n:'Data Center Craps',i:'🎲',d:'Roll dice on data center knowledge',c:'Data Centers'},
-gps:{n:'Power Systems Sportsbook',i:'📊',d:'Bet on your energy market knowledge',c:'GPS'},
+transformers:{n:'Transformer Blackjack',i:'🃏',d:'All products. Win hands, learn everything.',c:'Transformers'},
+switchgear:{n:'Switchgear Slots',i:'🎰',d:'All products. Spin to learn.',c:'Switchboards'},
 whale:{n:'The Whale',i:'🐋',d:'Close the deal with a real customer',c:'Sales Sim'}
 };
 
@@ -475,7 +478,7 @@ function showScreen(n){
 
 // === LOBBY ===
 function renderLobby(){
-  S.whaleUnlocked=Object.keys(S.levels).every(k=>S.levels[k]>=2);save();
+  S.whaleUnlocked=(S.levels.transformers>=2&&S.levels.switchgear>=2);save();
   let h='';
   for(let[k,t]of Object.entries(T)){
     let isW=k==='whale',locked=isW&&!S.whaleUnlocked;
@@ -612,8 +615,8 @@ function bjDealCards(){
 // Quiz on HIT: answer correctly to hit, wrong = forced stand
 function bjAskHit(){
   let lvl=S.levels.transformers;
-  let pool=Q.transformers[lvl];
-  bjQuestion=pickQ(pool,'transformers'+lvl);
+  let pool=allQ(lvl);
+  bjQuestion=pickQ(pool,'bj'+lvl);
   let q=bjQuestion;
   document.getElementById('bj-actions').innerHTML=`<div class="q-box">
     <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to HIT. Wrong = forced to STAND.</div>
@@ -696,8 +699,8 @@ function bjRenderDealerHand(hide){
 function bjAskStand(){
   if(bjDone)return;
   let lvl=S.levels.transformers;
-  let pool=Q.transformers[lvl];
-  bjQuestion=pickQ(pool,'transformers'+lvl);
+  let pool=allQ(lvl);
+  bjQuestion=pickQ(pool,'bj'+lvl);
   let q=bjQuestion;
   document.getElementById('bj-actions').innerHTML=`<div class="q-box">
     <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to STAND clean. Wrong = lose your highest card.</div>
@@ -740,8 +743,8 @@ function bjStandContinue(correct){
 // Quiz on DOUBLE: answer correctly to double, wrong = forced stand
 function bjAskDouble(){
   let lvl=S.levels.transformers;
-  let pool=Q.transformers[lvl];
-  bjQuestion=pickQ(pool,'transformers'+lvl);
+  let pool=allQ(lvl);
+  bjQuestion=pickQ(pool,'bj'+lvl);
   let q=bjQuestion;
   document.getElementById('bj-actions').innerHTML=`<div class="q-box">
     <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to DOUBLE DOWN. Wrong = forced to STAND.</div>
@@ -1157,8 +1160,8 @@ function slAskToSpin(){
   if(slBet>S.bankroll){slBet=S.bankroll;}
   if(slBet<=0)return;
   let lvl=S.levels.switchgear;
-  let pool=Q.switchgear[lvl];
-  slQuestion=pickQ(pool,'switchgear'+lvl);
+  let pool=allQ(lvl);
+  slQuestion=pickQ(pool,'sl'+lvl);
   let q=slQuestion;
   let area=document.getElementById('game');
   area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots</span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
@@ -1268,8 +1271,8 @@ function slCheckWins(){
 
 function slBonusQuestion(baseMult){
   let lvl=S.levels.switchgear;
-  let pool=Q.switchgear[lvl];
-  slQuestion=pickQ(pool,'switchgear'+lvl);
+  let pool=allQ(lvl);
+  slQuestion=pickQ(pool,'sl'+lvl);
   let q=slQuestion;
   let opts=q.o.map((o,i)=>`<button class="q-opt" onclick="slAnswerBonus(${i},${baseMult})">${o}</button>`).join('');
   document.getElementById('sl-actions').innerHTML=`<div class="q-box">
@@ -1303,8 +1306,8 @@ function slAnswerBonus(i,baseMult){
 
 function slResolveLoss(){
   let lvl=S.levels.switchgear;
-  let pool=Q.switchgear[lvl];
-  slQuestion=pickQ(pool,'switchgear'+lvl);
+  let pool=allQ(lvl);
+  slQuestion=pickQ(pool,'sl'+lvl);
   let q=slQuestion;
   let ts=S.stats.ts.switchgear;ts.p++;ts.l++;
   S.stats.lost+=slBet;S.bankroll-=slBet;
@@ -1660,7 +1663,7 @@ function renderStats(){
       <div class="stat-row"><span class="lb">Played</span><span class="vl">${ts.p}</span></div>
       <div class="stat-row"><span class="lb">Won / Lost</span><span class="vl">${ts.w} / ${ts.l}</span></div>
       <div class="stat-row"><span class="lb">Table Earnings</span><span class="vl" style="color:var(--gold)">$${(ts.earn||0).toLocaleString()}</span></div>
-      <div class="stat-row"><span class="lb">Next Level</span><span class="vl">${S.levels[k]>=3?'MAX':('$'+(S.levels[k]===1?'5,000':'15,000'))}</span></div></div>`;
+      <div class="stat-row"><span class="lb">Streak</span><span class="vl">${S.levels[k]>=3?'MAX LEVEL':(S.streaks[k]||0)+'/'+STREAK_TO_LEVEL+' to Level '+(S.levels[k]+1)}</span></div></div>`;
   }
   h+=`<div style="text-align:center;margin:16px 0"><button class="btn-clear" onclick="if(confirm('Reset all progress?')){localStorage.removeItem(SK);S=JSON.parse(JSON.stringify(DS));save();renderStats()}">Reset Progress</button></div>`;
   document.getElementById('stats').innerHTML=h;
