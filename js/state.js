@@ -114,12 +114,13 @@ function showAnswerFeedback(correct){
   if(correct){
     let container=document.createElement('div');
     container.className='confetti-container';
-    let colors=['#d4af37','#27ae60','#f1c40f','#e67e22','#3498db','#e74c3c','#9b59b6'];
+    let golds=['#d4af37','#f1c40f','#c9a84c','#e6c655','#b8972e','#ffd700','#daa520'];
     for(let i=0;i<30;i++){
       let piece=document.createElement('div');
       piece.className='confetti-piece';
       piece.style.left=Math.random()*100+'%';
-      piece.style.background=colors[Math.floor(Math.random()*colors.length)];
+      piece.style.background=golds[Math.floor(Math.random()*golds.length)];
+      piece.style.boxShadow='0 0 '+(2+Math.random()*4)+'px rgba(212,175,55,0.6)';
       piece.style.animationDelay=(Math.random()*0.4)+'s';
       piece.style.animationDuration=(0.8+Math.random()*0.8)+'s';
       piece.style.width=(6+Math.random()*8)+'px';
