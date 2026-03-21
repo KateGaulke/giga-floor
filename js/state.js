@@ -115,7 +115,7 @@ function showAnswerFeedback(correct){
     let container=document.createElement('div');
     container.className='confetti-container';
     let golds=['#d4af37','#f1c40f','#c9a84c','#e6c655','#b8972e','#ffd700','#daa520'];
-    for(let i=0;i<30;i++){
+    for(let i=0;i<60;i++){
       let piece=document.createElement('div');
       piece.className='confetti-piece';
       piece.style.left=Math.random()*100+'%';
