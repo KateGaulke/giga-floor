@@ -84,6 +84,7 @@ function bjShowBet(){
   let area=document.getElementById('game');
   area.innerHTML=`<div class="game-header"><span class="game-title">Transformer Blackjack<br><span style="font-size:11px;color:var(--gold);font-weight:700">${lvlName('transformers')}</span></span><button class="back-btn" onclick="showScreen('lobby')">← Lobby</button></div>
     ${levelSelectorHtml('transformers')}
+    ${masteryHtml(getQLvl('transformers'))}
     <div class="bet-area"><div class="bet-label">Place Your Bet</div><div class="bet-amount" id="bjbd">$0</div>
     <div class="chip-row"><div class="chip chip-25" onclick="bjAdd(25)">$25</div><div class="chip chip-50" onclick="bjAdd(50)">$50</div>
     <div class="chip chip-100" onclick="bjAdd(100)">$100</div><div class="chip chip-500" onclick="bjAdd(500)">$500</div></div>
@@ -126,7 +127,7 @@ function bjAskSplit(){
 function bjAskSplitQ(){
   let lvl=getQLvl('transformers');
   let pool=allQ(lvl);
-  bjQuestion=pickQ(pool,'bj'+lvl);
+  bjQuestion=pickQ(pool,'bj'+lvl,lvl);
   let q=bjQuestion;
   let qNum=bjSplitQCorrect+1;
   document.getElementById('bj-actions').innerHTML=`<div class="q-box">
@@ -146,10 +147,11 @@ function bjAnswerSplit(i){
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
   adjustLuck(correct);
   showAnswerFeedback(correct);
+  if(correct)markMastered(lvl,q);
   let lvlUp=recordStreak('transformers',correct);
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
   if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now ${lvlName('transformers')}</div>`;
-  explainHtml+=streakHtml('transformers');
+  explainHtml+=streakHtml('transformers')+masteryHtml(lvl);
 
   if(correct){
     bjSplitQCorrect++;
@@ -194,7 +196,7 @@ function bjAnswerSplit(i){
 function bjAskHit(){
   let lvl=getQLvl('transformers');
   let pool=allQ(lvl);
-  bjQuestion=pickQ(pool,'bj'+lvl);
+  bjQuestion=pickQ(pool,'bj'+lvl,lvl);
   let q=bjQuestion;
   document.getElementById('bj-actions').innerHTML=`<div class="q-box">
     <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to HIT${bjIsSplit?' (Hand '+(bjActiveHand+1)+')':''}. Wrong = forced to STAND.</div>
@@ -213,10 +215,11 @@ function bjAnswerHit(i){
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
   adjustLuck(correct);
   showAnswerFeedback(correct);
+  if(correct)markMastered(lvl,q);
   let lvlUp=recordStreak('transformers',correct);
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
   if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now ${lvlName('transformers')}</div>`;
-  explainHtml+=streakHtml('transformers');
+  explainHtml+=streakHtml('transformers')+masteryHtml(lvl);
   if(correct){
     let h=bjHands[bjActiveHand];
     h.cards.push(bjLuckyDraw(true));
@@ -241,7 +244,7 @@ function bjAskStand(){
   if(bjDone)return;
   let lvl=getQLvl('transformers');
   let pool=allQ(lvl);
-  bjQuestion=pickQ(pool,'bj'+lvl);
+  bjQuestion=pickQ(pool,'bj'+lvl,lvl);
   let q=bjQuestion;
   document.getElementById('bj-actions').innerHTML=`<div class="q-box">
     <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to STAND clean${bjIsSplit?' (Hand '+(bjActiveHand+1)+')':''}. Wrong = lose your highest card.</div>
@@ -260,11 +263,12 @@ function bjAnswerStand(i){
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
   adjustLuck(correct);
   showAnswerFeedback(correct);
+  if(correct)markMastered(lvl,q);
   let lvlUp=recordStreak('transformers',correct);
   let acts=document.getElementById('bj-actions');
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
   if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now ${lvlName('transformers')}</div>`;
-  explainHtml+=streakHtml('transformers');
+  explainHtml+=streakHtml('transformers')+masteryHtml(lvl);
   acts.innerHTML=explainHtml+`<button class="deal-btn" style="margin-top:12px;max-width:160px" onclick="bjStandContinue(${correct})">Continue</button>`;
 }
 
@@ -289,7 +293,7 @@ function bjStandContinue(correct){
 function bjAskDouble(){
   let lvl=getQLvl('transformers');
   let pool=allQ(lvl);
-  bjQuestion=pickQ(pool,'bj'+lvl);
+  bjQuestion=pickQ(pool,'bj'+lvl,lvl);
   let q=bjQuestion;
   document.getElementById('bj-actions').innerHTML=`<div class="q-box">
     <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to DOUBLE DOWN${bjIsSplit?' (Hand '+(bjActiveHand+1)+')':''}. Wrong = forced to STAND.</div>
@@ -308,11 +312,12 @@ function bjAnswerDouble(i){
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
   adjustLuck(correct);
   showAnswerFeedback(correct);
+  if(correct)markMastered(lvl,q);
   let lvlUp=recordStreak('transformers',correct);
   let acts=document.getElementById('bj-actions');
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
   if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now ${lvlName('transformers')}</div>`;
-  explainHtml+=streakHtml('transformers');
+  explainHtml+=streakHtml('transformers')+masteryHtml(lvl);
   acts.innerHTML=explainHtml+`<button class="deal-btn" style="margin-top:12px;max-width:160px" onclick="bjDoubleContinue(${correct})">Continue</button>`;
 }
 

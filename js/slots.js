@@ -27,6 +27,7 @@ function slShowBet(){
   let area=document.getElementById('game');
   area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">${lvlName('switchgear')}</span></span><button class="back-btn" onclick="showScreen('lobby')">← Lobby</button></div>
     ${levelSelectorHtml('switchgear')}
+    ${masteryHtml(getQLvl('switchgear'))}
     <div class="bet-area"><div class="bet-label">Bet Per Spin</div><div class="bet-amount" id="slbd">$0</div>
     <div class="chip-row"><div class="chip chip-25" onclick="slAddB(25)">$25</div><div class="chip chip-50" onclick="slAddB(50)">$50</div>
     <div class="chip chip-100" onclick="slAddB(100)">$100</div><div class="chip chip-500" onclick="slAddB(500)">$500</div></div>
@@ -58,7 +59,7 @@ function slAskToSpin(){
   if(slBet<=0)return;
   let lvl=getQLvl('switchgear');
   let pool=allQ(lvl);
-  slQuestion=pickQ(pool,'sl'+lvl);
+  slQuestion=pickQ(pool,'sl'+lvl,lvl);
   let q=slQuestion;
   let area=document.getElementById('game');
   area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">${lvlName('switchgear')}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
@@ -80,13 +81,14 @@ function slAnswerSpin(i){
   else{S.stats.qWrong++;S.stats.ts.switchgear.wr[lvl-1]++;}
   adjustLuck(correct);
   showAnswerFeedback(correct);
+  if(correct)markMastered(lvl,q);
   recordStreak('switchgear',correct);
 
   // Show static explainer with Continue button (no auto-dismiss!)
   let explainArea=document.getElementById('sl-explain-area');
   if(!explainArea){explainArea=document.getElementById('game');}
   explainArea.innerHTML=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>
-    ${streakHtml('switchgear')}
+    ${streakHtml('switchgear')}${masteryHtml(lvl)}
     <button class="deal-btn" style="margin-top:12px;max-width:200px" onclick="slAfterAnswer(${correct})">${correct?'SPIN THE REELS':'Continue'}</button>`;
 }
 
@@ -178,7 +180,7 @@ function slCheckWins(){
 function slBonusQuestion(baseMult){
   let lvl=getQLvl('switchgear');
   let pool=allQ(lvl);
-  slQuestion=pickQ(pool,'sl'+lvl);
+  slQuestion=pickQ(pool,'sl'+lvl,lvl);
   let q=slQuestion;
   let opts=q.o.map((o,i)=>`<button class="q-opt" onclick="slAnswerBonus(${i},${baseMult})">${o}</button>`).join('');
   document.getElementById('sl-actions').innerHTML=`<div class="q-box">
@@ -197,6 +199,7 @@ function slAnswerBonus(i,baseMult){
   else{S.stats.qWrong++;S.stats.ts.switchgear.wr[lvl-1]++;}
   adjustLuck(correct);
   showAnswerFeedback(correct);
+  if(correct)markMastered(lvl,q);
   recordStreak('switchgear',correct);
 
   let mult=correct?baseMult*3:baseMult;
@@ -216,7 +219,7 @@ function slAnswerBonus(i,baseMult){
 function slResolveLoss(){
   let lvl=getQLvl('switchgear');
   let pool=allQ(lvl);
-  slQuestion=pickQ(pool,'sl'+lvl);
+  slQuestion=pickQ(pool,'sl'+lvl,lvl);
   let q=slQuestion;
   let ts=S.stats.ts.switchgear;ts.p++;ts.l++;
   S.stats.lost+=slBet;S.bankroll-=slBet;

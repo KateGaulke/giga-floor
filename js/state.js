@@ -18,6 +18,7 @@ function load(){
   catch(e){s=JSON.parse(JSON.stringify(DS))}
   if(!s.streaks)s.streaks={transformers:0,switchgear:0,datacenters:0,gps:0};
   if(s.luck===undefined)s.luck=LUCK_BASE;
+  if(!s.mastery)s.mastery={};
   return s;
 }
 function save(){localStorage.setItem(SK,JSON.stringify(S));updBR()}
@@ -135,16 +136,46 @@ function showAnswerFeedback(correct){
   }
 }
 
-// Smart question picker: avoids repeats until pool exhausted
+// Smart question picker: prioritizes unmastered questions, avoids repeats
 let _asked={};
-function pickQ(pool,key){
+function pickQ(pool,key,masteryLvl){
   if(!key)key='default';
   if(!_asked[key])_asked[key]=[];
-  let avail=pool.filter((_,i)=>!_asked[key].includes(i));
+  let mastered=new Set(masteryLvl!==undefined&&S.mastery[masteryLvl]?S.mastery[masteryLvl]:[]);
+  // Priority 1: unasked AND unmastered
+  let avail=pool.filter((_,i)=>!_asked[key].includes(i)&&!mastered.has(i));
+  // Priority 2: unmastered (reset asked cycle)
+  if(avail.length===0){
+    let unm=pool.filter((_,i)=>!mastered.has(i));
+    if(unm.length>0){_asked[key]=[];avail=unm;}
+  }
+  // Priority 3: all mastered — full reset, cycle through again
   if(avail.length===0){_asked[key]=[];avail=pool;}
   let pick=avail[Math.floor(Math.random()*avail.length)];
   _asked[key].push(pool.indexOf(pick));
   return pick;
+}
+
+// Mark a question as mastered (answered correctly)
+function markMastered(lvl,question){
+  let pool=allQ(lvl);
+  let idx=pool.indexOf(question);
+  if(idx===-1)return;
+  if(!S.mastery[lvl])S.mastery[lvl]=[];
+  if(!S.mastery[lvl].includes(idx)){S.mastery[lvl].push(idx);save();}
+}
+
+// Mastery progress display
+function masteryHtml(lvl){
+  let pool=allQ(lvl);
+  if(!pool.length)return '';
+  let m=(S.mastery[lvl]||[]).length;
+  let t=pool.length;
+  let pct=Math.round(m/t*100);
+  let done=m>=t;
+  let bar=`<div style="width:100%;max-width:200px;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;margin:4px auto 0;overflow:hidden"><div style="width:${pct}%;height:100%;background:${done?'var(--gold)':'var(--win)'};border-radius:3px;transition:width 0.3s"></div></div>`;
+  return `<div style="text-align:center;margin:6px 0;font-size:11px;color:${done?'var(--gold)':'var(--dim)'}">
+    ${done?'🏆':'📚'} Mastered: ${m}/${t} questions (${pct}%)${bar}</div>`;
 }
 
 // Merged question pool: all 4 categories combined per level
