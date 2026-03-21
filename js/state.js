@@ -136,8 +136,8 @@ function getQLvl(tableKey){
 function levelSelectorHtml(tableKey){
   let maxLvl=S.levels[tableKey]||0;
   let curSel=getQLvl(tableKey);
-  if(maxLvl<=1)return ''; // Only one level unlocked (0 or 1), no selector needed
-  let btns='';
+  if(maxLvl<1)return ''; // Still on Basics, no selector needed yet
+  let btns=`<button class="${curSel===0?' active':''}" onclick="selectedQLevels.${tableKey}=0;this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Basics</button>`;
   for(let i=1;i<=3;i++){
     let active=i===curSel?' active':'';
     let disabled=i>maxLvl?' disabled':'';
