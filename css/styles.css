@@ -83,6 +83,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;backgroun
 .lvl-select button.active{background:var(--gold);color:#1a1a1a;border-color:var(--gold)}
 .lvl-select button:disabled{opacity:0.3;cursor:not-allowed}
 
+/* Luck meter */
+.luck-meter{margin:8px 0;padding:6px 12px;background:rgba(0,0,0,0.2);border-radius:10px;border:1px solid rgba(212,175,55,0.1)}
+.luck-label{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
+.luck-bar{height:6px;background:rgba(255,255,255,0.1);border-radius:3px}
+.luck-fill{height:100%;border-radius:3px;transition:width 0.5s ease,background 0.5s ease}
+.luck-up{animation:luckGlow 0.6s ease}
+.luck-down{animation:luckShake 0.4s ease}
+@keyframes luckGlow{
+  0%{box-shadow:none}
+  30%{box-shadow:0 0 16px rgba(212,175,55,0.6),0 0 32px rgba(212,175,55,0.3)}
+  60%{box-shadow:0 0 24px rgba(39,174,96,0.5),0 0 48px rgba(39,174,96,0.2)}
+  100%{box-shadow:none}
+}
+@keyframes luckShake{
+  0%{transform:translateX(0)}
+  15%{transform:translateX(-4px)}
+  30%{transform:translateX(4px)}
+  45%{transform:translateX(-3px)}
+  60%{transform:translateX(3px)}
+  75%{transform:translateX(-1px)}
+  100%{transform:translateX(0)}
+}
+
 /* Guide */
 .guide-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch}
 .guide-tab{flex-shrink:0;padding:8px 14px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid var(--gd);background:none;color:var(--dim);cursor:pointer;white-space:nowrap}

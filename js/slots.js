@@ -10,6 +10,17 @@ const SL_LINE_NAMES=['Top Row','Middle Row','Bottom Row','Diagonal ↘','Diagona
 let slBet=0,slQuestion=null,slGrid=[],slSpinning=false;
 
 function slRand(){return SL_SYMS[Math.floor(Math.random()*SL_SYMS.length)];}
+// Luck-influenced reel: higher luck = more weight toward high-value symbols
+function slLuckyRand(){
+  let luck=luckFactor();
+  let bias=(luck-0.5)*0.3; // -0.15 to +0.15
+  if(bias>0&&Math.random()<bias){
+    // Pick from high-value symbols
+    let highVal=['⭐','💎','📈','📦'];
+    return highVal[Math.floor(Math.random()*highVal.length)];
+  }
+  return slRand();
+}
 
 function slShowBet(){
   slBet=0;slSpinning=false;
@@ -51,6 +62,7 @@ function slAskToSpin(){
   let q=slQuestion;
   let area=document.getElementById('game');
   area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">Level ${S.levels.switchgear}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
+    ${luckMeterHtml()}
     <div class="q-box">
       <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to SPIN. Wrong = you lose your bet.</div>
       <div class="q-text">${q.q}</div>
@@ -66,6 +78,7 @@ function slAnswerSpin(i){
   });
   if(correct){S.stats.qRight++;S.stats.ts.switchgear.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.switchgear.wr[lvl-1]++;}
+  adjustLuck(correct);
   recordStreak('switchgear',correct);
 
   // Show static explainer with Continue button (no auto-dismiss!)
@@ -104,8 +117,8 @@ function slSpin(){
   if(slSpinning)return;
   if(slBet>S.bankroll){slBet=S.bankroll;}
   if(slBet<=0)return;
-  slSpinning=true;slWinCells=new Set();
-  slGrid=[];for(let i=0;i<9;i++)slGrid.push(slRand());
+  slSpinning=true;slWinCells=new Set();decayLuck();
+  slGrid=[];for(let i=0;i<9;i++)slGrid.push(slLuckyRand());
 
   let area=document.getElementById('game');
   area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">Level ${S.levels.switchgear}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
@@ -181,6 +194,7 @@ function slAnswerBonus(i,baseMult){
   });
   if(correct){S.stats.qRight++;S.stats.ts.switchgear.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.switchgear.wr[lvl-1]++;}
+  adjustLuck(correct);
   recordStreak('switchgear',correct);
 
   let mult=correct?baseMult*3:baseMult;

@@ -69,6 +69,7 @@ function whRender(){
   area.innerHTML=`<div class="game-header"><span class="game-title">${whCustomer.avatar} ${whCustomer.name}</span><button class="back-btn" onclick="showScreen('lobby')">← Lobby</button></div>
     <div style="font-size:11px;color:var(--dim)">${whCustomer.role}</div>
     <div style="font-size:10px;color:var(--dim);font-style:italic;margin-top:2px">${whCustomer.personality}</div>
+    ${luckMeterHtml()}
     <div class="wh-trust-label"><span>Trust</span><span>${trustLabel}</span></div>
     <div class="wh-trust"><div class="wh-trust-fill" style="width:${whTrust}%;background:${trustColor}"></div></div>
     <div class="wh-chat" id="wh-chat">${chatHtml}</div>
@@ -112,6 +113,7 @@ function whAnswer(i){
     whChat.push({who:'cust',text:set[Math.floor(Math.random()*set.length)]});
   }
   if(correct){S.stats.qRight++;}else{S.stats.qWrong++;}
+  adjustLuck(correct);
   save();
   whTurn++;
 

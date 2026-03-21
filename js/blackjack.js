@@ -16,6 +16,7 @@ let bjBet=0;
 let bjDone=false;
 let bjQuestion=null;
 let bjIsSplit=false;
+let bjSplitQCorrect=0; // track correct answers for 2-question split
 
 function bjMakeShoe(){
   let d=[];
@@ -28,6 +29,24 @@ function bjMakeShoe(){
 }
 function bjDraw(){
   if(bjShoe.length<SHOE_CUT)bjShoe=bjMakeShoe();
+  return bjShoe.pop();
+}
+// Luck-influenced draw: higher luck = better chance of good cards for player
+function bjLuckyDraw(forPlayer){
+  if(bjShoe.length<SHOE_CUT+5)bjShoe=bjMakeShoe();
+  let luck=luckFactor(); // 0-1, 0.5 = neutral
+  let bias=forPlayer?(luck-0.5)*0.4:(0.5-luck)*0.3; // player gets positive bias, dealer gets negative
+  if(Math.random()<Math.abs(bias)){
+    // Attempt a biased draw
+    let best=bjShoe.length-1,bestScore=-1;
+    let searchDepth=Math.min(8,bjShoe.length);
+    for(let i=bjShoe.length-1;i>=bjShoe.length-searchDepth;i--){
+      let val=bjCardVal(bjShoe[i]);
+      let score=bias>0?(val>=10?2:val>=7?1:0):(val<=6?2:val<=8?1:0);
+      if(score>bestScore){bestScore=score;best=i;}
+    }
+    if(best!==bjShoe.length-1){[bjShoe[best],bjShoe[bjShoe.length-1]]=[bjShoe[bjShoe.length-1],bjShoe[best]];}
+  }
   return bjShoe.pop();
 }
 
@@ -82,9 +101,10 @@ function bjQuickBet(amt){
 
 // Step 2: Deal cards
 function bjDealCards(){
-  bjHands=[{cards:[bjDraw(),bjDraw()],bet:bjBet,done:false,result:null}];
-  bjDealer=[bjDraw(),bjDraw()];
-  bjActiveHand=0;bjDone=false;bjIsSplit=false;
+  decayLuck();
+  bjHands=[{cards:[bjLuckyDraw(true),bjLuckyDraw(true)],bet:bjBet,done:false,result:null}];
+  bjDealer=[bjLuckyDraw(false),bjLuckyDraw(false)];
+  bjActiveHand=0;bjDone=false;bjIsSplit=false;bjSplitQCorrect=0;
   bjRenderTable(true);
   setTimeout(()=>bjCheckNatural(),600);
 }
@@ -97,14 +117,20 @@ function bjCheckNatural(){
   bjShowActions();
 }
 
-// === SPLIT ===
+// === SPLIT (requires 2 correct answers) ===
 function bjAskSplit(){
+  bjSplitQCorrect=0;
+  bjAskSplitQ();
+}
+
+function bjAskSplitQ(){
   let lvl=getQLvl('transformers');
   let pool=allQ(lvl);
   bjQuestion=pickQ(pool,'bj'+lvl);
   let q=bjQuestion;
+  let qNum=bjSplitQCorrect+1;
   document.getElementById('bj-actions').innerHTML=`<div class="q-box">
-    <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to SPLIT your pair. Wrong = no split, play continues.</div>
+    <div style="font-size:12px;color:var(--gold);margin-bottom:8px">SPLIT Question ${qNum}/2 — Answer both correctly to split your pair.</div>
     <div class="q-text">${q.q}</div>
     ${q.o.map((o,i)=>`<button class="q-opt" onclick="bjAnswerSplit(${i})">${o}</button>`).join('')}</div>`;
 }
@@ -118,38 +144,48 @@ function bjAnswerSplit(i){
   });
   if(correct){S.stats.qRight++;S.stats.ts.transformers.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
+  adjustLuck(correct);
   let lvlUp=recordStreak('transformers',correct);
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
   if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now Level ${S.levels.transformers}</div>`;
   explainHtml+=streakHtml('transformers');
 
   if(correct){
-    // Perform split
-    bjIsSplit=true;
-    let h=bjHands[0];
-    let c1=h.cards[0],c2=h.cards[1];
-    bjHands=[
-      {cards:[c1,bjDraw()],bet:h.bet,done:false,result:null},
-      {cards:[c2,bjDraw()],bet:h.bet,done:false,result:null}
-    ];
-    S.bankroll-=h.bet; // second hand costs another bet
-    save();
-    bjActiveHand=0;
-    bjRenderTable(true);
-    // Check for 21 on first hand
-    if(bjHandVal(bjHands[0].cards)===21){
-      bjHands[0].done=true;
-      bjActiveHand=1;
-      if(bjHandVal(bjHands[1].cards)===21){
-        bjHands[1].done=true;
-        bjDealerPlay();
-        return;
+    bjSplitQCorrect++;
+    if(bjSplitQCorrect>=2){
+      // Both questions correct — perform split
+      bjIsSplit=true;
+      let h=bjHands[0];
+      let c1=h.cards[0],c2=h.cards[1];
+      bjHands=[
+        {cards:[c1,bjLuckyDraw(true)],bet:h.bet,done:false,result:null},
+        {cards:[c2,bjLuckyDraw(true)],bet:h.bet,done:false,result:null}
+      ];
+      S.bankroll-=h.bet;
+      save();
+      bjActiveHand=0;
+      bjRenderTable(true);
+      if(bjHandVal(bjHands[0].cards)===21){
+        bjHands[0].done=true;
+        bjActiveHand=1;
+        if(bjHandVal(bjHands[1].cards)===21){
+          bjHands[1].done=true;
+          bjDealerPlay();
+          return;
+        }
       }
+      bjShowActions(explainHtml);
+    } else {
+      // First question correct — ask second
+      let acts=document.getElementById('bj-actions');
+      acts.innerHTML=explainHtml+`<div style="text-align:center;color:var(--win);font-size:13px;font-weight:700;margin:8px 0">✓ 1 of 2 — one more to split!</div>
+        <button class="deal-btn" style="margin-top:8px;max-width:180px" onclick="bjAskSplitQ()">Next Question</button>`;
     }
-    bjShowActions(explainHtml);
   } else {
+    // Wrong — no split, back to normal play
     let acts=document.getElementById('bj-actions');
-    acts.innerHTML=explainHtml+`<button class="deal-btn" style="margin-top:12px;max-width:160px" onclick="bjShowActions()">Continue</button>`;
+    acts.innerHTML=explainHtml+`<div style="text-align:center;color:var(--lose);font-size:13px;font-weight:700;margin:8px 0">Split denied — play continues.</div>
+      <button class="deal-btn" style="margin-top:8px;max-width:160px" onclick="bjShowActions()">Continue</button>`;
   }
 }
 
@@ -174,13 +210,14 @@ function bjAnswerHit(i){
   });
   if(correct){S.stats.qRight++;S.stats.ts.transformers.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
+  adjustLuck(correct);
   let lvlUp=recordStreak('transformers',correct);
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
   if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now Level ${S.levels.transformers}</div>`;
   explainHtml+=streakHtml('transformers');
   if(correct){
     let h=bjHands[bjActiveHand];
-    h.cards.push(bjDraw());
+    h.cards.push(bjLuckyDraw(true));
     bjRenderTable(true);
     if(bjHandVal(h.cards)>21){bjHandBust();return;}
     if(bjHandVal(h.cards)===21){bjHandStand();return;}
@@ -219,6 +256,7 @@ function bjAnswerStand(i){
   });
   if(correct){S.stats.qRight++;S.stats.ts.transformers.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
+  adjustLuck(correct);
   let lvlUp=recordStreak('transformers',correct);
   let acts=document.getElementById('bj-actions');
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
@@ -265,6 +303,7 @@ function bjAnswerDouble(i){
   });
   if(correct){S.stats.qRight++;S.stats.ts.transformers.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
+  adjustLuck(correct);
   let lvlUp=recordStreak('transformers',correct);
   let acts=document.getElementById('bj-actions');
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
@@ -277,7 +316,7 @@ function bjDoubleContinue(correct){
   let h=bjHands[bjActiveHand];
   if(correct){
     h.bet*=2;
-    h.cards.push(bjDraw());
+    h.cards.push(bjLuckyDraw(true));
     bjRenderTable(true);
     if(bjHandVal(h.cards)>21){bjHandBust();return;}
     bjHandStand();
@@ -346,6 +385,7 @@ function bjRenderTable(hideDealer){
 
   // Dealer
   let html=`<div class="game-header"><span class="game-title">Transformer Blackjack<br><span style="font-size:11px;color:var(--gold);font-weight:700">Level ${S.levels.transformers}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${totalBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
+    ${luckMeterHtml()}
     <div style="text-align:center;margin:8px 0">
       <div style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px">Dealer ${hideDealer?'':'— '+dv}</div>
       <div id="bj-dealer-hand" class="bj-hand">${bjHandHtml(bjDealer,hideDealer)}</div>
@@ -382,7 +422,7 @@ function bjDealerPlay(){
   bjRenderTable(false);
   function dealerStep(){
     if(bjHandVal(bjDealer)<17){
-      bjDealer.push(bjDraw());
+      bjDealer.push(bjLuckyDraw(false));
       bjRenderTable(false);
       setTimeout(dealerStep,600);
     } else {

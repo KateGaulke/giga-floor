@@ -6,6 +6,10 @@ transformers:{p:0,w:0,l:0,r:[0,0,0],wr:[0,0,0],earn:0},switchgear:{p:0,w:0,l:0,r
 datacenters:{p:0,w:0,l:0,r:[0,0,0],wr:[0,0,0],earn:0},gps:{p:0,w:0,l:0,r:[0,0,0],wr:[0,0,0],earn:0},whale:{p:0,w:0,l:0,earn:0}}}};
 
 const STREAK_TO_LEVEL=5;
+const LUCK_BASE=50;
+const LUCK_CORRECT=5;
+const LUCK_WRONG=3;
+const LUCK_DECAY=1;
 let S=load();
 
 function load(){
@@ -13,10 +17,14 @@ function load(){
   try{s=localStorage.getItem(SK);s=s?JSON.parse(s):JSON.parse(JSON.stringify(DS))}
   catch(e){s=JSON.parse(JSON.stringify(DS))}
   if(!s.streaks)s.streaks={transformers:0,switchgear:0,datacenters:0,gps:0};
+  if(s.luck===undefined)s.luck=LUCK_BASE;
   return s;
 }
 function save(){localStorage.setItem(SK,JSON.stringify(S));updBR()}
-function updBR(){document.querySelectorAll('[id^=br]').forEach(e=>e.innerHTML='<span>Bankroll</span>$'+S.bankroll.toLocaleString())}
+function updBR(){
+  let luckEmoji=S.luck>=65?'🍀':S.luck>=45?'🎲':'🥶';
+  document.querySelectorAll('[id^=br]').forEach(e=>e.innerHTML='<span>Bankroll</span>$'+S.bankroll.toLocaleString()+`<span style="font-size:10px;color:var(--dim)">${luckEmoji} Luck: ${S.luck}%</span>`);
+}
 
 function checkLevelUp(tableKey){
   if(tableKey==='whale')return;
@@ -51,6 +59,44 @@ function streakHtml(tableKey){
     dots+=`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 2px;${i<streak?'background:var(--gold)':'background:rgba(255,255,255,0.15)'}"></span>`;
   }
   return `<div style="text-align:center;margin:6px 0"><div style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Level ${lvl} → ${lvl+1}: ${streak}/${STREAK_TO_LEVEL} streak</div>${dots}</div>`;
+}
+
+// === LUCK SYSTEM ===
+function adjustLuck(correct){
+  let old=S.luck;
+  if(correct){S.luck=Math.min(100,S.luck+LUCK_CORRECT);}
+  else{S.luck=Math.max(0,S.luck-LUCK_WRONG);}
+  save();
+  animateLuck(S.luck>old);
+}
+function decayLuck(){
+  if(S.luck>LUCK_BASE){S.luck=Math.max(LUCK_BASE,S.luck-LUCK_DECAY);save();}
+  else if(S.luck<LUCK_BASE){S.luck=Math.min(LUCK_BASE,S.luck+LUCK_DECAY);save();}
+}
+// Returns a luck factor 0-1 (0.5 = neutral)
+function luckFactor(){return S.luck/100;}
+
+function luckMeterHtml(){
+  let pct=S.luck;
+  let color=pct>=65?'var(--win)':pct>=45?'var(--gold)':'var(--lose)';
+  let label=pct>=80?'On Fire':pct>=65?'Lucky':pct>=45?'Neutral':pct>=25?'Cold':'Ice Cold';
+  return `<div class="luck-meter" id="luck-meter"><div class="luck-label"><span>🍀 Luck</span><span>${label} (${pct}%)</span></div><div class="luck-bar"><div class="luck-fill" id="luck-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
+}
+
+function animateLuck(up){
+  let el=document.getElementById('luck-meter');
+  if(!el)return;
+  el.classList.remove('luck-up','luck-down');
+  void el.offsetWidth; // force reflow
+  el.classList.add(up?'luck-up':'luck-down');
+  // Update meter display
+  let pct=S.luck;
+  let color=pct>=65?'var(--win)':pct>=45?'var(--gold)':'var(--lose)';
+  let label=pct>=80?'On Fire':pct>=65?'Lucky':pct>=45?'Neutral':pct>=25?'Cold':'Ice Cold';
+  let labelEl=el.querySelector('.luck-label');
+  if(labelEl)labelEl.innerHTML=`<span>🍀 Luck</span><span>${label} (${pct}%)</span>`;
+  let fill=document.getElementById('luck-fill');
+  if(fill){fill.style.width=pct+'%';fill.style.background=color;}
 }
 
 // Smart question picker: avoids repeats until pool exhausted
