@@ -82,7 +82,7 @@ function bjCanSplit(){
 function bjShowBet(){
   bjBet=0;bjDone=false;bjQuestion=null;bjIsSplit=false;bjHands=[];bjActiveHand=0;
   let area=document.getElementById('game');
-  area.innerHTML=`<div class="game-header"><span class="game-title">Transformer Blackjack<br><span style="font-size:11px;color:var(--gold);font-weight:700">Level ${S.levels.transformers}</span></span><button class="back-btn" onclick="showScreen('lobby')">← Lobby</button></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Transformer Blackjack<br><span style="font-size:11px;color:var(--gold);font-weight:700">${lvlName('transformers')}</span></span><button class="back-btn" onclick="showScreen('lobby')">← Lobby</button></div>
     ${levelSelectorHtml('transformers')}
     <div class="bet-area"><div class="bet-label">Place Your Bet</div><div class="bet-amount" id="bjbd">$0</div>
     <div class="chip-row"><div class="chip chip-25" onclick="bjAdd(25)">$25</div><div class="chip chip-50" onclick="bjAdd(50)">$50</div>
@@ -147,7 +147,7 @@ function bjAnswerSplit(i){
   adjustLuck(correct);
   let lvlUp=recordStreak('transformers',correct);
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
-  if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now Level ${S.levels.transformers}</div>`;
+  if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now ${lvlName('transformers')}</div>`;
   explainHtml+=streakHtml('transformers');
 
   if(correct){
@@ -213,7 +213,7 @@ function bjAnswerHit(i){
   adjustLuck(correct);
   let lvlUp=recordStreak('transformers',correct);
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
-  if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now Level ${S.levels.transformers}</div>`;
+  if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now ${lvlName('transformers')}</div>`;
   explainHtml+=streakHtml('transformers');
   if(correct){
     let h=bjHands[bjActiveHand];
@@ -260,7 +260,7 @@ function bjAnswerStand(i){
   let lvlUp=recordStreak('transformers',correct);
   let acts=document.getElementById('bj-actions');
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
-  if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now Level ${S.levels.transformers}</div>`;
+  if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now ${lvlName('transformers')}</div>`;
   explainHtml+=streakHtml('transformers');
   acts.innerHTML=explainHtml+`<button class="deal-btn" style="margin-top:12px;max-width:160px" onclick="bjStandContinue(${correct})">Continue</button>`;
 }
@@ -307,7 +307,7 @@ function bjAnswerDouble(i){
   let lvlUp=recordStreak('transformers',correct);
   let acts=document.getElementById('bj-actions');
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
-  if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now Level ${S.levels.transformers}</div>`;
+  if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now ${lvlName('transformers')}</div>`;
   explainHtml+=streakHtml('transformers');
   acts.innerHTML=explainHtml+`<button class="deal-btn" style="margin-top:12px;max-width:160px" onclick="bjDoubleContinue(${correct})">Continue</button>`;
 }
@@ -384,7 +384,7 @@ function bjRenderTable(hideDealer){
   let totalBet=bjHands.reduce((a,h)=>a+h.bet,0);
 
   // Dealer
-  let html=`<div class="game-header"><span class="game-title">Transformer Blackjack<br><span style="font-size:11px;color:var(--gold);font-weight:700">Level ${S.levels.transformers}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${totalBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
+  let html=`<div class="game-header"><span class="game-title">Transformer Blackjack<br><span style="font-size:11px;color:var(--gold);font-weight:700">${lvlName('transformers')}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${totalBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
     ${luckMeterHtml()}
     <div style="text-align:center;margin:8px 0">
       <div style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px">Dealer ${hideDealer?'':'— '+dv}</div>

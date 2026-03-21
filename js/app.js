@@ -23,7 +23,8 @@ function renderLobby(){
   let h='';
   for(let[k,t]of Object.entries(T)){
     let isW=k==='whale',locked=isW&&!S.whaleUnlocked;
-    let lvl=isW?(S.whaleUnlocked?'OPEN':'LOCKED'):'Lvl '+S.levels[k];
+    let rawLvl=S.levels[k]||0;
+    let lvl=isW?(S.whaleUnlocked?'OPEN':'LOCKED'):(rawLvl===0?'Basics':'Lvl '+rawLvl);
     let ts=S.stats.ts[k],total=isW?ts.p:((ts.r[0]+ts.r[1]+ts.r[2])||0);
     let wrong=isW?0:((ts.wr[0]+ts.wr[1]+ts.wr[2])||0);
     let pct=total+wrong>0?Math.round(total/(total+wrong)*100):0;
@@ -44,6 +45,60 @@ function startTable(k){curTable=k;curBet=0;showScreen('game');
 
 // === STUDY GUIDE ===
 const GD={
+basics:{t:'The Basics',c:`<h3>Electrical Units — The Language</h3>
+<table><tr><th>Term</th><th>What It Means</th><th>Analogy</th></tr>
+<tr><td><b>Volt (V)</b></td><td>Electrical pressure</td><td>Water pressure in a pipe</td></tr>
+<tr><td><b>Amp (A)</b></td><td>Current flow rate</td><td>How much water is flowing</td></tr>
+<tr><td><b>Watt (W)</b></td><td>Power (Volts × Amps)</td><td>How much work the water does</td></tr>
+<tr><td><b>kW</b></td><td>1,000 watts</td><td>Powers a small home</td></tr>
+<tr><td><b>MW</b></td><td>1,000,000 watts</td><td>Powers ~750 homes</td></tr>
+<tr><td><b>GW</b></td><td>1,000,000,000 watts</td><td>Powers a major city</td></tr>
+<tr><td><b>kV</b></td><td>1,000 volts</td><td>Transmission line voltage</td></tr>
+<tr><td><b>kVA</b></td><td>Kilovolt-ampere (capacity)</td><td>Engine horsepower for electrical equipment</td></tr>
+<tr><td><b>MVA</b></td><td>1,000 kVA</td><td>Large substation capacity</td></tr></table>
+
+<h3>Voltage Ranges</h3>
+<table><tr><th>Range</th><th>Name</th><th>Where You See It</th></tr>
+<tr><td>Under 1 kV</td><td>LV (Low Voltage)</td><td>Homes, offices, inside buildings</td></tr>
+<tr><td>1-35 kV</td><td>MV (Medium Voltage)</td><td>Distribution, campuses, industrial sites</td></tr>
+<tr><td>35-230 kV</td><td>HV (High Voltage)</td><td>Transmission lines, large substations</td></tr>
+<tr><td>230+ kV</td><td>EHV (Extra High Voltage)</td><td>Long-distance transmission</td></tr></table>
+
+<h3>Key Equipment</h3>
+<ul><li><b>Transformer</b> — Steps voltage up or down. The core product.</li>
+<li><b>Switchboard</b> — Distributes power to multiple circuits with breaker protection.</li>
+<li><b>Substation</b> — A facility with transformers, switches, and breakers that connects different parts of the grid.</li>
+<li><b>Circuit Breaker</b> — Safety switch that trips when current is too high.</li>
+<li><b>Generator</b> — Creates electricity from fuel (diesel, natural gas, etc.).</li></ul>
+
+<h3>Standards & Certifications</h3>
+<ul><li><b>UL Listed</b> — Independently safety-tested by Underwriters Laboratories</li>
+<li><b>IEEE</b> — Institute of Electrical and Electronics Engineers (sets technical standards)</li>
+<li><b>NEC</b> — National Electrical Code (installation safety rules)</li>
+<li><b>NEMA</b> — National Electrical Manufacturers Association (enclosure ratings: NEMA 1=indoor, 3R=outdoor)</li>
+<li><b>DOE</b> — Department of Energy (sets efficiency standards)</li>
+<li><b>KAIC</b> — Kilo Ampere Interrupting Capacity (fault current a breaker can handle)</li></ul>
+
+<h3>The US Power Grid</h3>
+<p>The US has three separate grids (interconnections) plus regional operators:</p>
+<table><tr><th>Grid Operator</th><th>Region</th><th>Notes</th></tr>
+<tr><td><b>ERCOT</b></td><td>Texas (90%)</td><td>Independent grid, unique market rules</td></tr>
+<tr><td><b>SPP</b></td><td>Oklahoma, Kansas, 14 states</td><td>Heavy wind, price swings = opportunity</td></tr>
+<tr><td><b>PJM</b></td><td>Mid-Atlantic, 13 states</td><td>Largest US market, biggest data center corridor</td></tr>
+<tr><td><b>MISO</b></td><td>Midwest, 15 states</td><td>Central US, growing data center demand</td></tr></table>
+
+<h3>Energy Market Concepts</h3>
+<ul><li><b>Demand Response</b> — Getting paid to reduce power usage during peak demand</li>
+<li><b>Energy Arbitrage</b> — Using power when cheap, curtailing when expensive</li>
+<li><b>Ancillary Services</b> — Helping keep the grid stable (frequency regulation, reserves)</li>
+<li><b>Capacity Payments</b> — Getting paid just for being available to supply or reduce power</li>
+<li><b>Curtailment</b> — Deliberately reducing power consumption in response to grid conditions</li>
+<li><b>Behind the Meter</b> — Equipment on the customer's side of the electric meter</li></ul>
+
+<h3>Notable Events</h3>
+<ul><li><b>2003 Northeast Blackout</b> — Software bug caused cascading failure, 55 million affected across 8 states + Canada. Led to mandatory reliability standards.</li>
+<li><b>2021 Texas Winter Storm (Uri)</b> — Record cold froze power plants, 4.5M homes lost power, hundreds died. Exposed grid vulnerability and drove massive infrastructure investment.</li>
+<li><b>The AI Power Surge</b> — AI data centers need 20x more power per rack than traditional servers. This is driving unprecedented demand for transformers, switchboards, and power infrastructure — which is exactly why Giga Energy is growing so fast.</li></ul>`},
 transformers:{t:'Transformers',c:`<h3>What They Do</h3><p>Step voltage up or down. Giga takes high-voltage utility power and delivers it at usable levels.</p>
 <h4>3-Phase Padmount</h4><ul><li>Up to 46 kV, up to 10,000 kVA</li><li>In-stock: 1-2 business days (Long Beach, CA)</li><li>Custom: 12-14 weeks vs competitors' 52-104+ weeks</li><li>75 kVA ~$32,400 / 2,500 kVA ~$80,000</li></ul>
 <h4>MV Substation</h4><ul><li>5-35 kV, up to 60 MVA. For needs above 10 MVA</li><li>Custom: ~26 weeks</li></ul>
@@ -97,7 +152,7 @@ function renderStats(){
     if(k==='whale')continue;
     let ts=s.ts[k];
     h+=`<div class="stat-card"><h3>${t.i} ${t.n}</h3>
-      <div class="stat-row"><span class="lb">Level</span><span class="vl"><span class="lvl-badge">Level ${S.levels[k]}</span></span></div>
+      <div class="stat-row"><span class="lb">Level</span><span class="vl"><span class="lvl-badge">${S.levels[k]===0?'Basics':'Level '+S.levels[k]}</span></span></div>
       <div class="stat-row"><span class="lb">Played</span><span class="vl">${ts.p}</span></div>
       <div class="stat-row"><span class="lb">Won / Lost</span><span class="vl">${ts.w} / ${ts.l}</span></div>
       <div class="stat-row"><span class="lb">Table Earnings</span><span class="vl" style="color:var(--gold)">$${(ts.earn||0).toLocaleString()}</span></div>

@@ -1,6 +1,6 @@
 // === STATE MANAGEMENT ===
 const SK='gigafloor_v2';
-const DS={bankroll:10000,levels:{transformers:1,switchgear:1,datacenters:1,gps:1},whaleUnlocked:false,
+const DS={bankroll:10000,levels:{transformers:0,switchgear:0,datacenters:0,gps:0},whaleUnlocked:false,
 stats:{won:0,lost:0,qRight:0,qWrong:0,ts:{
 transformers:{p:0,w:0,l:0,r:[0,0,0],wr:[0,0,0],earn:0},switchgear:{p:0,w:0,l:0,r:[0,0,0],wr:[0,0,0],earn:0},
 datacenters:{p:0,w:0,l:0,r:[0,0,0],wr:[0,0,0],earn:0},gps:{p:0,w:0,l:0,r:[0,0,0],wr:[0,0,0],earn:0},whale:{p:0,w:0,l:0,earn:0}}}};
@@ -52,13 +52,14 @@ function recordStreak(tableKey,correct){
 function streakHtml(tableKey){
   if(!S.streaks)S.streaks={transformers:0,switchgear:0,datacenters:0,gps:0};
   let streak=S.streaks[tableKey]||0;
-  let lvl=S.levels[tableKey]||1;
+  let lvl=S.levels[tableKey]||0;
   if(lvl>=3)return `<div style="text-align:center;margin:6px 0;font-size:11px;color:var(--gold)">🏆 MAX LEVEL</div>`;
+  let nextLabel=lvl===0?'Basics → Level 1':`Level ${lvl} → ${lvl+1}`;
   let dots='';
   for(let i=0;i<STREAK_TO_LEVEL;i++){
     dots+=`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 2px;${i<streak?'background:var(--gold)':'background:rgba(255,255,255,0.15)'}"></span>`;
   }
-  return `<div style="text-align:center;margin:6px 0"><div style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Level ${lvl} → ${lvl+1}: ${streak}/${STREAK_TO_LEVEL} streak</div>${dots}</div>`;
+  return `<div style="text-align:center;margin:6px 0"><div style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">${nextLabel}: ${streak}/${STREAK_TO_LEVEL} streak</div>${dots}</div>`;
 }
 
 // === LUCK SYSTEM ===
@@ -115,6 +116,10 @@ function pickQ(pool,key){
 function allQ(lvl){
   return [].concat(Q.transformers[lvl]||[],Q.switchgear[lvl]||[],Q.datacenters[lvl]||[],Q.gps[lvl]||[]);
 }
+// Check if all basics are complete (Level 0 unlocked to Level 1)
+function basicsComplete(tableKey){return (S.levels[tableKey]||0)>=1;}
+// Display-friendly level name
+function lvlName(tableKey){let l=S.levels[tableKey]||0;return l===0?'Basics':'Level '+l;}
 
 // Level selection state — tracks player's chosen question level per table
 // null means "use current table level" (default behavior)
@@ -124,14 +129,14 @@ let selectedQLevels={transformers:null,switchgear:null};
 function getQLvl(tableKey){
   let sel=selectedQLevels[tableKey];
   if(sel!==null&&sel!==undefined)return sel;
-  return S.levels[tableKey]||1;
+  return S.levels[tableKey]||0;
 }
 
 // Build level selector UI for games that support it
 function levelSelectorHtml(tableKey){
-  let maxLvl=S.levels[tableKey]||1;
+  let maxLvl=S.levels[tableKey]||0;
   let curSel=getQLvl(tableKey);
-  if(maxLvl<=1)return ''; // Only one level unlocked, no selector needed
+  if(maxLvl<=1)return ''; // Only one level unlocked (0 or 1), no selector needed
   let btns='';
   for(let i=1;i<=3;i++){
     let active=i===curSel?' active':'';

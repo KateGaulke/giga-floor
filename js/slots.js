@@ -25,7 +25,7 @@ function slLuckyRand(){
 function slShowBet(){
   slBet=0;slSpinning=false;
   let area=document.getElementById('game');
-  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">Level ${S.levels.switchgear}</span></span><button class="back-btn" onclick="showScreen('lobby')">← Lobby</button></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">${lvlName('switchgear')}</span></span><button class="back-btn" onclick="showScreen('lobby')">← Lobby</button></div>
     ${levelSelectorHtml('switchgear')}
     <div class="bet-area"><div class="bet-label">Bet Per Spin</div><div class="bet-amount" id="slbd">$0</div>
     <div class="chip-row"><div class="chip chip-25" onclick="slAddB(25)">$25</div><div class="chip chip-50" onclick="slAddB(50)">$50</div>
@@ -61,7 +61,7 @@ function slAskToSpin(){
   slQuestion=pickQ(pool,'sl'+lvl);
   let q=slQuestion;
   let area=document.getElementById('game');
-  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">Level ${S.levels.switchgear}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">${lvlName('switchgear')}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
     ${luckMeterHtml()}
     <div class="q-box">
       <div style="font-size:12px;color:var(--gold);margin-bottom:8px">Answer correctly to SPIN. Wrong = you lose your bet.</div>
@@ -99,7 +99,7 @@ function slAfterAnswer(correct){
     if(S.bankroll<25)S.bankroll=500;save();
     let q=slQuestion;
     let area=document.getElementById('game');
-    area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">Level ${S.levels.switchgear}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
+    area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">${lvlName('switchgear')}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
       <div class="slot-frame"><div class="sl-grid">${'<div class="sl-cell">🚫</div>'.repeat(9)}</div></div>
       ${questionHtml(q)}
       ${explainBox(q.e,q.s)}
@@ -121,7 +121,7 @@ function slSpin(){
   slGrid=[];for(let i=0;i<9;i++)slGrid.push(slLuckyRand());
 
   let area=document.getElementById('game');
-  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">Level ${S.levels.switchgear}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">${lvlName('switchgear')}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
     ${slRenderMachine(true)}
     <div id="sl-info" style="text-align:center;min-height:24px;margin:8px 0;font-weight:700"></div>
     <div id="sl-actions"></div>
@@ -156,7 +156,7 @@ function slCheckWins(){
   });
 
   let area=document.getElementById('game');
-  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">Level ${S.levels.switchgear}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
+  area.innerHTML=`<div class="game-header"><span class="game-title">Switchgear Slots<br><span style="font-size:11px;color:var(--gold);font-weight:700">${lvlName('switchgear')}</span></span><span class="game-title" style="text-align:right;line-height:1.4">$${slBet} bet<br><span style="font-size:10px;color:var(--dim)">Bank: $${S.bankroll.toLocaleString()}</span></span></div>
     ${slRenderMachine(false)}
     <div id="sl-info" style="text-align:center;min-height:24px;margin:8px 0;font-weight:700"></div>
     <div id="sl-actions"></div>
