@@ -100,6 +100,41 @@ function animateLuck(up){
   if(fill){fill.style.width=pct+'%';fill.style.background=color;}
 }
 
+// === ANSWER FEEDBACK ANIMATIONS ===
+function showAnswerFeedback(correct){
+  // Flash overlay with icon
+  let flash=document.createElement('div');
+  flash.className='answer-flash '+(correct?'correct':'wrong');
+  flash.innerHTML=`<span class="flash-icon">${correct?'✓':'✗'}</span>`;
+  document.body.appendChild(flash);
+  setTimeout(()=>flash.remove(),900);
+
+  // Confetti for correct answers
+  if(correct){
+    let container=document.createElement('div');
+    container.className='confetti-container';
+    let colors=['#d4af37','#27ae60','#f1c40f','#e67e22','#3498db','#e74c3c','#9b59b6'];
+    for(let i=0;i<30;i++){
+      let piece=document.createElement('div');
+      piece.className='confetti-piece';
+      piece.style.left=Math.random()*100+'%';
+      piece.style.background=colors[Math.floor(Math.random()*colors.length)];
+      piece.style.animationDelay=(Math.random()*0.4)+'s';
+      piece.style.animationDuration=(0.8+Math.random()*0.8)+'s';
+      piece.style.width=(6+Math.random()*8)+'px';
+      piece.style.height=(6+Math.random()*8)+'px';
+      piece.style.borderRadius=Math.random()>0.5?'50%':'2px';
+      container.appendChild(piece);
+    }
+    document.body.appendChild(container);
+    setTimeout(()=>container.remove(),1800);
+  } else {
+    // Shake the quiz box
+    let qbox=document.querySelector('.q-box');
+    if(qbox){qbox.classList.remove('shake');void qbox.offsetWidth;qbox.classList.add('shake');}
+  }
+}
+
 // Smart question picker: avoids repeats until pool exhausted
 let _asked={};
 function pickQ(pool,key){

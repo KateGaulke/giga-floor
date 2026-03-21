@@ -31,6 +31,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;backgroun
 .q-opt{display:block;width:100%;text-align:left;padding:12px 14px;margin:6px 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:var(--txt);font-size:14px;cursor:pointer;transition:border-color 0.15s}
 .q-opt:active{border-color:var(--gold)}.q-opt.correct{background:rgba(39,174,96,0.2);border-color:var(--win)}.q-opt.wrong{background:rgba(231,76,60,0.2);border-color:var(--lose)}.q-opt.reveal{border-color:var(--win);opacity:0.6}
 .q-opt:disabled{pointer-events:none}
+
+/* Answer feedback overlays */
+.answer-flash{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:100;pointer-events:none;animation:flashFade 0.8s ease forwards}
+.answer-flash.correct{background:rgba(39,174,96,0.15)}
+.answer-flash.wrong{background:rgba(231,76,60,0.15)}
+.answer-flash .flash-icon{font-size:80px;animation:flashPop 0.6s ease forwards}
+@keyframes flashFade{0%{opacity:1}60%{opacity:1}100%{opacity:0}}
+@keyframes flashPop{0%{transform:scale(0.3);opacity:0}40%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
+
+/* Confetti */
+.confetti-container{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:99;overflow:hidden}
+.confetti-piece{position:absolute;width:10px;height:10px;top:-10px;animation:confettiFall 1.2s ease forwards}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+/* Wrong answer shake */
+.q-box.shake{animation:qShake 0.4s ease}
+@keyframes qShake{0%{transform:translateX(0)}15%{transform:translateX(-8px)}30%{transform:translateX(8px)}45%{transform:translateX(-6px)}60%{transform:translateX(6px)}75%{transform:translateX(-2px)}100%{transform:translateX(0)}}
+
+/* Correct answer glow pulse */
+.q-opt.correct{animation:correctPulse 0.5s ease}
+@keyframes correctPulse{0%{box-shadow:none}50%{box-shadow:0 0 20px rgba(39,174,96,0.6),0 0 40px rgba(39,174,96,0.3)}100%{box-shadow:0 0 8px rgba(39,174,96,0.2)}}
+
 .result-box{text-align:center;padding:16px;border-radius:14px;margin:12px 0}
 .result-box.win{background:rgba(39,174,96,0.12);border:1px solid rgba(39,174,96,0.3)}
 .result-box.lose{background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3)}

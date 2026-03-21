@@ -114,6 +114,7 @@ function whAnswer(i){
   }
   if(correct){S.stats.qRight++;}else{S.stats.qWrong++;}
   adjustLuck(correct);
+  showAnswerFeedback(correct);
   save();
   whTurn++;
 

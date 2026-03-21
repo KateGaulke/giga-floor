@@ -79,6 +79,7 @@ function slAnswerSpin(i){
   if(correct){S.stats.qRight++;S.stats.ts.switchgear.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.switchgear.wr[lvl-1]++;}
   adjustLuck(correct);
+  showAnswerFeedback(correct);
   recordStreak('switchgear',correct);
 
   // Show static explainer with Continue button (no auto-dismiss!)
@@ -195,6 +196,7 @@ function slAnswerBonus(i,baseMult){
   if(correct){S.stats.qRight++;S.stats.ts.switchgear.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.switchgear.wr[lvl-1]++;}
   adjustLuck(correct);
+  showAnswerFeedback(correct);
   recordStreak('switchgear',correct);
 
   let mult=correct?baseMult*3:baseMult;

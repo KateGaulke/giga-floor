@@ -145,6 +145,7 @@ function bjAnswerSplit(i){
   if(correct){S.stats.qRight++;S.stats.ts.transformers.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
   adjustLuck(correct);
+  showAnswerFeedback(correct);
   let lvlUp=recordStreak('transformers',correct);
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
   if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now ${lvlName('transformers')}</div>`;
@@ -211,6 +212,7 @@ function bjAnswerHit(i){
   if(correct){S.stats.qRight++;S.stats.ts.transformers.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
   adjustLuck(correct);
+  showAnswerFeedback(correct);
   let lvlUp=recordStreak('transformers',correct);
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
   if(lvlUp)explainHtml+=`<div style="text-align:center;padding:8px;margin:8px 0;background:rgba(212,175,55,0.15);border-radius:8px;color:var(--gold);font-weight:700">🎰 LEVEL UP! Now ${lvlName('transformers')}</div>`;
@@ -257,6 +259,7 @@ function bjAnswerStand(i){
   if(correct){S.stats.qRight++;S.stats.ts.transformers.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
   adjustLuck(correct);
+  showAnswerFeedback(correct);
   let lvlUp=recordStreak('transformers',correct);
   let acts=document.getElementById('bj-actions');
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
@@ -304,6 +307,7 @@ function bjAnswerDouble(i){
   if(correct){S.stats.qRight++;S.stats.ts.transformers.r[lvl-1]++;}
   else{S.stats.qWrong++;S.stats.ts.transformers.wr[lvl-1]++;}
   adjustLuck(correct);
+  showAnswerFeedback(correct);
   let lvlUp=recordStreak('transformers',correct);
   let acts=document.getElementById('bj-actions');
   let explainHtml=`${questionHtml(q)}<div class="explain" style="margin:8px 0;font-size:14px"><span class="explain-label">${correct?'Correct':'Incorrect'}</span>${q.e}<br>${srcHtml(q.s)}</div>`;
