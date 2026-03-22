@@ -137,6 +137,13 @@ function showAnswerFeedback(correct){
   }
 }
 
+// Shuffle answer options so correct answer isn't always in same position
+function shuffleOpts(q){
+  let indices=q.o.map((_,i)=>i);
+  for(let i=indices.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[indices[i],indices[j]]=[indices[j],indices[i]];}
+  return {q:q.q,o:indices.map(i=>q.o[i]),a:indices.indexOf(q.a),e:q.e,s:q.s,_orig:q};
+}
+
 // Smart question picker: prioritizes unmastered questions, avoids repeats
 let _asked={};
 function pickQ(pool,key,masteryLvl){
@@ -154,13 +161,14 @@ function pickQ(pool,key,masteryLvl){
   if(avail.length===0){_asked[key]=[];avail=pool;}
   let pick=avail[Math.floor(Math.random()*avail.length)];
   _asked[key].push(pool.indexOf(pick));
-  return pick;
+  return shuffleOpts(pick);
 }
 
 // Mark a question as mastered (answered correctly)
 function markMastered(lvl,question){
+  let orig=question._orig||question;
   let pool=allQ(lvl);
-  let idx=pool.indexOf(question);
+  let idx=pool.indexOf(orig);
   if(idx===-1)return;
   if(!S.mastery[lvl])S.mastery[lvl]=[];
   if(!S.mastery[lvl].includes(idx)){S.mastery[lvl].push(idx);save();}

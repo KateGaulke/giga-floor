@@ -55,7 +55,7 @@ function whBegin(){
   whCustomer=WH_CUSTOMERS[Math.floor(Math.random()*WH_CUSTOMERS.length)];
   // Pick 5 whale questions (was 4, now more for deeper conversations)
   let pool=[...Q.whale].sort(()=>Math.random()-0.5);
-  whQuestions=pool.slice(0,5);
+  whQuestions=pool.slice(0,5).map(q=>shuffleOpts(q));
   whChat.push({who:'cust',text:whCustomer.intro});
   whRender();
   setTimeout(()=>whShowTurn(),800);
